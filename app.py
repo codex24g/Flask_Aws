@@ -222,6 +222,41 @@ def status():
     # Dummy status check since training_complete.txt has been removed
     return jsonify({"status": "ready"})
 
+@app.route("/edit_preferences")
+def edit_preferences():
+    return render_template("edit_preferences.html")
+
+@app.route("/update_preferences", methods=["POST"])
+def update_preferences():
+    try:
+        data = request.json
+        class_name = data['class_name']
+        drink_preference = data['drink_preference']
+        dietary_restrictions = data['dietary_restrictions']
+
+        # Load existing class names
+        if os.path.exists('class_names.json'):
+            with open('class_names.json', 'r') as f:
+                class_names = json.load(f)
+        else:
+            return jsonify({"error": "class_names.json not found"}), 404
+
+        # Update the specific class name
+        if class_name in class_names:
+            class_names[class_name]['drink_preference'] = drink_preference
+            class_names[class_name]['dietary_restrictions'] = dietary_restrictions
+        else:
+            return jsonify({"error": "Class name not found"}), 404
+
+        # Save the updated class names back to the JSON file
+        with open('class_names.json', 'w') as f:
+            json.dump(class_names, f, indent=4)
+
+        return jsonify({"success": "Preferences updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, host="0.0.0.0")
+
  
